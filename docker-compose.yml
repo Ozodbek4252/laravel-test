@@ -7,6 +7,8 @@ services:
         depends_on:
             pgsql:
                 condition: service_healthy
+            redis:
+                condition: service_healthy
 
     nginx:
         image: nginx:alpine
@@ -43,5 +45,28 @@ services:
             timeout: 5s
             retries: 20
 
+    redis:
+        image: redis:8-alpine
+        ports:
+            - "${FORWARD_REDIS_PORT:-6379}:6379"
+        volumes:
+            - redis-data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 20
+
+    adminer:
+        image: adminer:latest
+        environment:
+            ADMINER_DEFAULT_SERVER: pgsql
+        ports:
+            - "${FORWARD_ADMINER_PORT:-8080}:8080"
+        depends_on:
+            pgsql:
+                condition: service_healthy
+
 volumes:
     pgsql-data:
+    redis-data:
