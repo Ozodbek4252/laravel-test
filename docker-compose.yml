@@ -25,7 +25,7 @@ services:
             POSTGRES_USER: ${DB_USERNAME:-laravel}
             POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
         ports:
-            - "${FORWARD_DB_PORT:-5433}:5432"
+            - "${FORWARD_DB_PORT:-5434}:5432"
         volumes:
             - pgsql-data:/var/lib/postgresql
         healthcheck:
