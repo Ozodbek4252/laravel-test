@@ -1,0 +1,47 @@
+services:
+    app:
+        build: .
+        image: laravel-test-app
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            pgsql:
+                condition: service_healthy
+
+    nginx:
+        image: nginx:alpine
+        ports:
+            - "${APP_PORT:-8000}:80"
+        volumes:
+            - .:/var/www/html:ro
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        depends_on:
+            - app
+
+    pgsql:
+        image: postgres:18-alpine
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-laravel_test}
+            POSTGRES_USER: ${DB_USERNAME:-laravel}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+        ports:
+            - "${FORWARD_DB_PORT:-5433}:5432"
+        volumes:
+            - pgsql-data:/var/lib/postgresql
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "pg_isready",
+                    "-q",
+                    "-d",
+                    "${DB_DATABASE:-laravel_test}",
+                    "-U",
+                    "${DB_USERNAME:-laravel}",
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 20
+
+volumes:
+    pgsql-data:
